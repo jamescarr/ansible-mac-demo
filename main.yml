@@ -1,9 +1,12 @@
 ---
 - hosts: localhost
   connection: local
-
   tasks:
     - name: Say hello world
       osx_say:
         msg: "Hello World!"
 
+    - name: Install VIM
+      homebrew:
+        name: macvim
+        state: latest
