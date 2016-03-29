@@ -1,18 +1,13 @@
 ---
 - hosts: localhost
   connection: local
-  vars:
-    homebrew_taps:
-      - caskroom/cask
-    homebrew_installed_packages:
-      - tmux
-      - macvim
-    homebrew_cask_apps:
-      - spotify
-      - iterm2
+  vars_files:
+     - vars/homebrew.yaml
+
   roles:
     - geerlingguy.homebrew
+
   tasks:
-    - name: Say hello world
+    - name: Say All Done!
       osx_say:
-        msg: "Hello World!"
+        msg: "ALL DONE!"
