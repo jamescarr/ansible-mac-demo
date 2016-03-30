@@ -17,6 +17,16 @@
     mode: 0755
 
 - name: Install oh-my-zsh
-  command: zsh /tmp/install-oh-my-zsh.sh
+  command: sh /tmp/install-oh-my-zsh.sh
+
+- name: Backup existing zshrc if it exists
+  copy:
+    src: "/Users/{{ ansible_ssh_user }}/.zshrc"
+    dest: "/Users/{{ ansible_ssh_user }}/.zshrc-backup.{{ ansible_date_time.epoch }}"
+
+- name: Render zshrc
+  template:
+    src: zshrc.j2
+    dest: "/Users/{{ ansible_ssh_user }}/.zshrc"
 
 

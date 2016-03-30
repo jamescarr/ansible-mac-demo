@@ -1,0 +1,5 @@
+---
+zsh_theme: robbyrussell
+
+oh_my_zsh_plugins:
+  - git

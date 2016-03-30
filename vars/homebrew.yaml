@@ -4,6 +4,7 @@ homebrew_taps:
 homebrew_installed_packages:
   - tmux
   - macvim
+  - tree
 
 homebrew_cask_apps:
   - spotify

@@ -5,8 +5,12 @@
      - vars/homebrew.yaml
 
   roles:
-    - geerlingguy.homebrew
-    - jamescarr.dotfiles
+    - role: geerlingguy.homebrew
+    - role: jamescarr.dotfiles
+      zsh_theme: bureau
+      oh_my_zsh_plugins:
+        - git
+        - osx
 
   tasks:
     - name: Say All Done!
