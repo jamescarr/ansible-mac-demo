@@ -1,84 +1,160 @@
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
 ZSH_THEME="{{ zsh_theme }}"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion. Case
-# sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=({{ oh_my_zsh_plugins|join(' ') }})
 
 # User configuration
-
-export PATH=$HOME/bin:/usr/local/bin:$PATH
-# export MANPATH="/usr/local/man:$MANPATH"
-
+export PATH="$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 source $ZSH/oh-my-zsh.sh
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+###################################################
+# Virtualenvwrapper
+###################################################
+export WORKON_HOME=$HOME/.virtualenvs
+export PROJECT_HOME=$HOME/Projects
+source /usr/local/bin/virtualenvwrapper.sh
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
+###################################################
+# Aliases
+###################################################
 
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
+# docker
+alias b2d='boot2docker up && $(boot2docker shellinit)'
+alias dcu='docker-compose up'
+alias dcud='docker-compose up -d'
+alias dcr='docker-compose run'
+alias dm='docker-machine'
+alias dml='docker-machine ls'
+alias dmcv='docker-machine create --driver virtualbox'
+alias dme='eval "$(docker-machine env default)"'
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# aws
+alias s3='aws s3'
+alias ec2='aws ec2'
+
+# git
+alias gpl='git pull --rebase'
+alias gc='git commit -am'
+
+# misc
+alias j="jobs -l"
+alias l.l='ls -1A | grep "^\." | xargs ls -lhGF'
+alias ll="ls -lhF"
+alias ls="ls -GF"
+alias top="top -ocpu -Orsize"
+
+# vagrant
+alias v=vagrant
+alias vu='vagrant up'
+alias vp='vagrant provision'
+alias vh='vagrant halt'
+
+# RVM
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export PATH="$PATH:$HOME/bin" # Add RVM to PATH for scripting
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm"
+
+# configure zsh autojump
+[[ -s `brew --prefix`/etc/autojump.zsh ]] && . `brew --prefix`/etc/autojump.zsh
+
+###################################################
+# ZSH Variables
+###################################################
+export ZDOTDIR=~/.zsh
+export ZSH_SECRET_HOME=${ZDOTDIR}/secret
+export ZSH_SECRET_VARIABLES=${ZSH_SECRET_HOME}/variables.zsh
+
+# Import Secret Variables
+if [[ -e ${ZSH_SECRET_VARIABLES} ]]; then
+    source ${ZSH_SECRET_VARIABLES}
+fi
+
+###################################################
+# AWS Functions
+###################################################
+
+function awsenv() {
+   export AWS_DEFAULT_PROFILE=$1
+   export AWS_PROFILE=$1
+}
+
+function aws-rds-describe() {
+    zparseopts -D -E -A opts -- o:
+    output=${opts[-o]:-"table"}
+
+    name=${1}
+    query=(
+        "DBInstances[]"
+        ".{"
+        "DBInstanceIdentifier : DBInstanceIdentifier,"
+        "Address              : Endpoint.Address,"
+        "Port                 : Endpoint.Port,"
+        "InstanceCreateTime   : InstanceCreateTime,"
+        "DBInstanceClass      : DBInstanceClass"
+        "}"
+    )
+
+    aws --output ${output} \
+        rds describe-db-instances \
+        --query "${query}"
+
+}
+
+function aws-instances-describe() {
+    zparseopts -D -E -A opts -- o t:
+    output=${opts[-o]:-"table"}
+    tag_name=${opts[-t]:-"Name"}
+
+    name=${1}
+    query=(
+        "Reservations[].Instances[]"
+        ".{"
+        "Name             : Tags[?Key == \`Name\`].Value | [0],"
+        "State            : State.Name,"
+        "LaunchTime       : LaunchTime,"
+        "PublicIpAddress  : PublicIpAddress,"
+        "PrivateIpAddress : PrivateIpAddress,"
+        "ImageId          : ImageId,"
+        "InstanceType     : InstanceType"
+        "}"
+    )
+
+    aws --output ${output} \
+        ec2 describe-instances \
+        --filters "Name=tag:${tag_name},Values=*${name}*" \
+        --query "${query}"
+}
+
+
+###################################################
+# Docker Machine Functions
+###################################################
+
+function dms() {
+  name=${1:=default}
+
+  docker-machine start $name
+}
+
+function dme() {
+  name=${1:=default}
+
+  eval $(docker-machine env $name)
+}
+function dmc() {
+  name=${1}
+
+  docker-machine create --driver virtualbox $name
+}
+
+function vdu() {
+  name=${1}
+
+  vagrant destroy -f $name && vagrant up $name
+}
+
+awsenv default
+
