@@ -1,0 +1,22 @@
+---
+- name: Install ZSH
+  homebrew:
+    name: zsh
+    state: latest
+
+- name: Change current user shell
+  user:
+    name: "{{ ansible_ssh_user }}"
+    shell: /bin/zsh
+  become: yes
+
+- name: Fetch oh-my-zsh
+  get_url:
+    url: https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh
+    dest: /tmp/install-oh-my-zsh.sh
+    mode: 0755
+
+- name: Install oh-my-zsh
+  command: zsh /tmp/install-oh-my-zsh.sh
+
+

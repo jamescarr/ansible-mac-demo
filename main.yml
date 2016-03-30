@@ -6,6 +6,7 @@
 
   roles:
     - geerlingguy.homebrew
+    - jamescarr.dotfiles
 
   tasks:
     - name: Say All Done!

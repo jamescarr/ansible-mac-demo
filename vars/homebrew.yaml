@@ -1,8 +1,11 @@
 homebrew_taps:
   - caskroom/cask
+
 homebrew_installed_packages:
   - tmux
   - macvim
+
 homebrew_cask_apps:
   - spotify
   - iterm2
+
